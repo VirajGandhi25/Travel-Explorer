@@ -4,19 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkbox Selection</title>
+    <style>
+        /* Global styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('background.jpg'); /* Add background image */
+            background-size: cover;
+            height: 95vh;
+            background-repeat: no-repeat;
+            background-position: center;
+            color: #333; /* Text color */
+        }
+
+        .container {
+            max-width: 600px; /* Reduce the max-width of the container */
+            margin: 20px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        p {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Button styles */
+        button {
+            display: block;
+            width: calc(50% - 20px); /* Make the width same as option box */
+            padding: 10px; /* Reduce padding */
+            margin: 0 auto; /* Center the button */
+            background-color: #5fd1b4;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #4cbda2;
+        }
+
+        /* Checkboxes container */
+        #checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* Align options in the center */
+            margin-top: 20px;
+        }
+
+        /* Checkboxes styles */
+        .category-checkbox {
+            /* Adjust checkbox styles */
+            opacity: 0;
+            position: absolute;
+        }
+
+        label {
+            display: inline-block;
+            width: calc(50% - 20px); /* Adjust width of option box */
+            margin: 10px;
+            padding: 10px 15px; /* Reduce padding */
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-align: center; /* Align text in the center */
+        }
+
+        label:hover {
+            background-color: #e0e0e0;
+        }
+
+        .category-checkbox:checked + label {
+            background-color: #5fd1b4; /* Change background color of checked checkbox */
+            color: white; /* Change text color of checked checkbox */
+        }
+
+        /* Responsive styles */
+        @media screen and (max-width: 600px) {
+            label {
+                width: calc(100% - 20px); /* Full width on smaller screens */
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Select Places of Interest</h1>
-    <p>Select the places you want to visit:</p>
-    <div id="checkboxes">
-        <!-- Categories checkboxes will be dynamically added here -->
+    <div class="container">
+        <h1>Select Places of Interest</h1>
+        <p>Select the places you want to visit:</p>
+        <div id="checkboxes">
+            <!-- Categories checkboxes will be dynamically added here -->
+        </div>
+        <button id="showSelectedBtn">Show Selected Places</button>
     </div>
-    <button id="showSelectedBtn">Show Selected Places</button>
 
     <script>
         // Categories array
         const categories = [
-            "shops","foods","sport","interesting_places", "amusements", "adult", "accomodations"
+            "Shops", "Foods", "Sport", "Interesting Places", "Amusements", "Adult", "Accommodations"
         ];
 
         // Function to create checkboxes for categories
@@ -26,16 +124,15 @@
             categories.forEach(category => {
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
-                checkbox.id = category;
+                checkbox.id = category.toLowerCase();
                 checkbox.className = 'category-checkbox';
                 
                 const label = document.createElement('label');
-                label.htmlFor = category;
+                label.htmlFor = category.toLowerCase();
                 label.textContent = category;
 
                 checkboxesContainer.appendChild(checkbox);
                 checkboxesContainer.appendChild(label);
-                checkboxesContainer.appendChild(document.createElement('br')); // Add line break for spacing
             });
         }
 
@@ -67,33 +164,14 @@
             // Display selected places in an alert
             alert('Selected Places:\n' + selectedPlaces.join('\n'));
 
-            // Construct URL with selected categories and location as parameters
-            const url = `checkbox411.html?categories=${selectedPlaces.join(',')}`;
-
             // Retrieve location parameter from URL
             const urlParams = new URLSearchParams(window.location.search);
             const locationParam = urlParams.get('location');
 
             // Construct URL with selected categories and location as parameters
-            const url1 = `checkbox411.html?location=${encodeURIComponent(locationParam)}&categories=${selectedPlaces.join(',')}`;
-            window.location.href = url1; // Redirect to checkbox4.html with parameters
+            const url = `checkbox411.html?location=${encodeURIComponent(locationParam)}&categories=${selectedPlaces.join(',')}`;
+            window.location.href = url; // Redirect to checkbox4.html with parameters
         });
-
-
-        //  // Construct URL with selected categories as parameters
-        //  const url = `checkbox411.html?categories=${selectedPlaces.join(',')}`;
-        //     window.location.href = url; // Redirect to locations.html with parameters
-        
-        //     // Retrieve location parameter from URL
-        //     const urlParams = new URLSearchParams(window.location.search);
-        //     const locationParam = urlParams.get('location');
-
-        //     // Construct URL with selected categories and location as parameters
-        //     const url1 = `checkbox411.html?location=${encodeURIComponent(locationParam)}&categories=${selectedPlaces.join(',')}`;
-        //     window.location.href = url1; // Redirect to checkbox4.html with parameters
-        
-
-
     </script>
 </body>
 </html>
