@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkbox Selection</title>
+</head>
+<body>
+    <h1>Select Places of Interest</h1>
+    <p>Select the places you want to visit:</p>
+    <div id="checkboxes">
+        <!-- Categories checkboxes will be dynamically added here -->
+    </div>
+    <button id="showSelectedBtn">Show Selected Places</button>
+
+    <script>
+        // Categories array
+        const categories = [
+            "shops","foods","sport","interesting_places", "amusements", "adult", "accomodations"
+        ];
+
+        // Function to create checkboxes for categories
+        function createCategoryCheckboxes(categories) {
+            const checkboxesContainer = document.getElementById('checkboxes');
+
+            categories.forEach(category => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = category;
+                checkbox.className = 'category-checkbox';
+                
+                const label = document.createElement('label');
+                label.htmlFor = category;
+                label.textContent = category;
+
+                checkboxesContainer.appendChild(checkbox);
+                checkboxesContainer.appendChild(label);
+                checkboxesContainer.appendChild(document.createElement('br')); // Add line break for spacing
+            });
+        }
+
+        // Call the function to create checkboxes
+        createCategoryCheckboxes(categories);
+
+        // Function to display selected checkboxes and redirect if at least one checkbox is selected
+        document.getElementById('showSelectedBtn').addEventListener('click', function() {
+            const selectedPlaces = []; // Array to store selected places
+
+            // Get all checkboxes
+            const checkboxes = document.querySelectorAll('.category-checkbox');
+
+            // Check if at least one checkbox is checked
+            let atLeastOneChecked = false;
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    atLeastOneChecked = true;
+                    selectedPlaces.push(checkbox.nextSibling.textContent);
+                }
+            });
+
+            // If no checkbox is checked, show alert and return
+            if (!atLeastOneChecked) {
+                alert('Please select at least one place.');
+                return;
+            }
+
+            // Display selected places in an alert
+            alert('Selected Places:\n' + selectedPlaces.join('\n'));
+
+            // Construct URL with selected categories and location as parameters
+            const url = `checkbox411.html?categories=${selectedPlaces.join(',')}`;
+
+            // Retrieve location parameter from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const locationParam = urlParams.get('location');
+
+            // Construct URL with selected categories and location as parameters
+            const url1 = `checkbox411.html?location=${encodeURIComponent(locationParam)}&categories=${selectedPlaces.join(',')}`;
+            window.location.href = url1; // Redirect to checkbox4.html with parameters
+        });
+
+
+        //  // Construct URL with selected categories as parameters
+        //  const url = `checkbox411.html?categories=${selectedPlaces.join(',')}`;
+        //     window.location.href = url; // Redirect to locations.html with parameters
+        
+        //     // Retrieve location parameter from URL
+        //     const urlParams = new URLSearchParams(window.location.search);
+        //     const locationParam = urlParams.get('location');
+
+        //     // Construct URL with selected categories and location as parameters
+        //     const url1 = `checkbox411.html?location=${encodeURIComponent(locationParam)}&categories=${selectedPlaces.join(',')}`;
+        //     window.location.href = url1; // Redirect to checkbox4.html with parameters
+        
+
+
+    </script>
+</body>
+</html>

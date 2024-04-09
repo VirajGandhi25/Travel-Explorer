@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('background.jpg'); /* Add a background image */
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* Center content vertically */
+            height: 100vh;
+            color: #fff; /* Text color */
+        }
+
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.3); /* Semi-transparent white background */
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px); /* Apply blur effect to container */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* Add shadow effect */
+            margin-top: -20px; /* Move the container slightly above */
+        }
+
+        input[type="text"],
+        input[type="password"],
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: block; /* Display elements as block-level to stack vertically */
+            width: 200px; /* Reduce width of buttons */
+            margin: 0 auto 10px; /* Center align the elements and add bottom margin */
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            width: fit-content;
+            align-items: center;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+
+        /* Navigation bar styles */
+        .navbar {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0); /* Semi-transparent white background */
+            padding: 10px 0;
+            border-radius: 10px;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            backdrop-filter: blur(10px); /* Apply blur effect to navbar */
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: #fff;
+            margin: 0 20px;
+            font-size: 18px;
+            transition: color 0.3s ease; /* Smooth transition for color change */
+        }
+
+        .navbar a:hover {
+            color: #ffc107; /* Change color on hover */
+        }
+
+        /* Update color of welcome text */
+        h1 {
+            color: #fff;
+            font-size: 36px;
+            margin-bottom: 50px; /* Adjust margin as needed */
+        }
+        h2 {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <a href="login.html" class="active"><u>Home</u></a>
+    <a href="about.html">About</a>
+</div>
+
+<h1>Welcome to Travel Explorer</h1>
+
+<div class="container">
+    <form id="loginForm" method="post" action="login.php">
+        <h2>Login</h2>
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+    <button onclick="window.location.href='signup.html'">Sign Up</button>
+</div>
+
+</body>
+</html>

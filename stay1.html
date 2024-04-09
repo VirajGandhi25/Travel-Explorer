@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tour Itinerary Planner</title><br>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.0/xlsx.full.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <!-- Include Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <!-- Include Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Include jQuery UI Autocomplete CSS -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <!-- Include jQuery UI Autocomplete JavaScript -->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        $(function() {
+            const states = [
+                "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli", "Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+            ];
+
+            $("#location").autocomplete({
+                source: states
+            });
+        });
+    </script>
+</head>
+<body>
+    <!-- <h1>Tour Itinerary Planner</h1> -->
+    <h1>Choose Accomodation</h1>
+    <div class="container">
+        <div class="left-panel">
+    <label for="location">Enter Location where you would like to accomodate:</label>
+    <input type="text" id="location" name="location" placeholder="Where do you want to go?">
+    <!-- <button id="getCoordinatesBtn">Get Coordinates</button>
+    <button id="showNearbyPlacesBtn" style="display: none;">Show Nearby Places</button> -->
+    <br>
+    <button id="getCoordinatesAndPlacesBtn">Get Coordinates & Show Nearby Places</button>
+    <br>
+    <button id="exportToExcelBtn" style="display: none;">Export to Excel</button>
+    <button id="selectDateBtn">Display Itinerary</button>
+    <button id="searchBtn">Search on maps</button>
+
+    <div id="coordinates"></div>
+    <div id="categories"></div>
+</div>
+    <div id="map"></div>
+    </div>
+    <script>
+        const apiKey = '5ae2e3f221c38a28845f05b6fb88108160b76562540d181f06c7fb96';
+        let latitude, longitude; // Declare latitude and longitude variables to store coordinates
+        let nearbyPlaces; // Declare variable to store fetched nearby places
+        let marker;
+        let map;
+
+        // Function to fetch coordinates for a location using OpenTripMap API
+        async function getLocationCoordinates(location) {
+            try {
+                const response = await fetch(`https://api.opentripmap.com/0.1/en/places/geoname?name=${encodeURIComponent(location)}&apikey=${apiKey}`);
+                const data = await response.json();
+                if (data.lon && data.lat) {
+                    latitude = data.lat; // Store latitude
+                    longitude = data.lon; // Store longitude
+                    return true;
+                } else {
+                    throw new Error('Coordinates not found for the location');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                throw new Error('Failed to fetch coordinates for the location');
+            }
+        }
+
+        // Function to fetch coordinates for a location using OpenTripMap API
+        async function getLocationCoordinates1(location) {
+            try {
+                const response = await fetch(`https://api.opentripmap.com/0.1/en/places/geoname?name=${encodeURIComponent(location)}&apikey=${apiKey}`);
+                const data = await response.json();
+                if (data.lon && data.lat) {
+                    return { lat: data.lat, lon: data.lon };
+                } else {
+                    throw new Error('Coordinates not found for the location');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                throw new Error('Failed to fetch coordinates for the location');
+            }
+        }
+
+        // Function to display the location on the map
+        function displayLocationOnMap(latitude, longitude) {
+            if (marker) {
+                marker.remove(); // Remove previous marker if it exists
+            }
+
+            if (!map) {
+                map = L.map('map').setView([latitude, longitude], 13);
+
+                // Add Tile Layer for OpenStreetMap
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+            } else {
+                map.setView([latitude, longitude], 13); // Update map view if already initialized
+            }
+
+            // Add Marker for the searched location
+            marker = L.marker([latitude, longitude]).addTo(map)
+                .bindPopup('Searched Location')
+                .openPopup();
+        }
+
+
+
+        // Function to fetch nearby places for the stored coordinates using OpenTripMap API
+        async function getNearbyPlaces() {
+            try {
+                const radius = 9000; // Radius in kilometers
+                const responseNearby = await fetch(`https://api.opentripmap.com/0.1/en/places/radius?radius=${radius}&lon=${longitude}&lat=${latitude}&kinds=accomodations&apikey=${apiKey}`);
+                const nearbyData = await responseNearby.json();
+                return nearbyData.features.map(feature => ({
+                    name: feature.properties.name,
+                    image: feature.properties.image,
+                    schema: categorizePlace(feature.properties.name),
+                }));
+            } catch (error) {
+                console.error('Error:', error);
+                throw new Error('Failed to fetch nearby places. Please try again.');
+            }
+        }
+
+        // Function to categorize places based on their names
+        function categorizePlace(name) {
+            name = name.toLowerCase();
+            if (name.includes('hotel')) {
+                return 'Hotel';
+            } else if (name.includes('restaurant') || name.includes('cafe') || name.includes('diner')) {
+                return 'Restaurant';
+            } else if (name.includes('temple')) {
+                return 'Temple';
+            } else if (name.includes('church')) {
+                return 'Church';
+            } else if (name.includes('accommodations') || name.includes('accommodation')) {
+                return 'Accommodations';
+            } else if (name.includes('theatre') || name.includes('cinema')) {
+                return 'Theatre';
+            } else if (name.includes('ashram')) {
+                return 'Ashram';
+            } else if (name.includes('palace')) {
+                return 'Palace';
+            } else if (name.includes('fort')) {
+                return 'Fort';
+            } else if (name.includes('station') || name.includes('railway') || name.includes('airport')) {
+                return 'Station';
+            } else if (name.includes('beach')) {
+                return 'Beach';
+            } else if (name.includes('memorial')) {
+                return 'Memorial';
+            } else if (name.includes('city')) {
+                return 'City';
+            } else {
+                return 'Similar Places';
+            }
+        }
+
+        // Autocomplete for Indian states
+        $(function() {
+            const states = [
+                "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli", "Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+            ];
+            $("#location").autocomplete({
+                source: states
+            });
+        });
+
+
+        
+         // Event listener for the search button
+         document.getElementById('searchBtn').addEventListener('click', async function() {
+            const locationInput = document.getElementById('location').value.trim();
+            if (locationInput === '') {
+                alert('Please enter a location before searching.');
+                return; // Exit the function if no location is entered
+            }
+
+            try {
+                const coordinates = await getLocationCoordinates1(locationInput);
+                displayLocationOnMap(coordinates.lat, coordinates.lon);
+               // saveLocation(locationInput); // Save the location to the database
+            } catch (error) {
+                console.error('Error:', error.message);
+                if (marker) {
+                    marker.remove(); // Remove previous marker if it exists
+                }
+            }
+        });
+
+
+        // document.getElementById('getCoordinatesBtn').addEventListener('click', async function() {
+        //     const locationInput = document.getElementById('location').value;
+        //     try {
+        //         const success = await getLocationCoordinates(locationInput);
+        //         if (success) {
+        //             document.getElementById('coordinates').innerText = `Latitude: ${latitude}, Longitude: ${longitude}`;
+        //             document.getElementById('showNearbyPlacesBtn').style.display = 'inline'; // Display the "Show Nearby Places" button
+        //         }
+        //     } catch (error) {
+        //         console.error('Error:', error);
+        //         alert('Failed to fetch coordinates for the location. Please try again.');
+        //     }
+        // });
+
+        // document.getElementById('showNearbyPlacesBtn').addEventListener('click', async function() {
+        //     try {
+        //         nearbyPlaces = await getNearbyPlaces();
+        //         displayCategories(groupPlacesByCategory(nearbyPlaces));
+        //         document.getElementById('exportToExcelBtn').style.display = 'inline'; // Display the "Export to Excel" button
+        //     } catch (error) {
+        //         console.error('Error:', error);
+        //         alert('Failed to fetch nearby places. Please try again.');
+        //     }
+        // });
+
+        document.getElementById('getCoordinatesAndPlacesBtn').addEventListener('click', async function() {
+            const locationInput = document.getElementById('location').value;
+            try {
+                const success = await getLocationCoordinates(locationInput);
+                if (success) {
+                    document.getElementById('coordinates').innerText = `Latitude: ${latitude}, Longitude: ${longitude}`;
+                    nearbyPlaces = await getNearbyPlaces();
+                    displayCategories(groupPlacesByCategory(nearbyPlaces));
+                    document.getElementById('exportToExcelBtn').style.display = 'inline'; // Display the "Export to Excel" button
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to fetch coordinates for the location. Please try again.');
+            }
+        });
+
+        // Function to group places by category
+        function groupPlacesByCategory(nearbyPlaces) {
+            const categories = {};
+            nearbyPlaces.forEach(place => {
+                const category = place.schema;
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push(place);
+            });
+            return categories;
+        }
+
+        // Function to display categorized places
+        function displayCategories(categories) {
+            const categoriesContainer = document.getElementById('categories');
+            categoriesContainer.innerHTML = ''; // Clear previous results
+
+            for (const category in categories) {
+                const categoryPlaces = categories[category].filter(place => place.name.trim() !== ''); // Filter out empty places
+                // const categoryPlaces = categories[category];
+                const categoryDiv = document.createElement('div');
+                categoryDiv.innerHTML = `<h2>${category}</h2>`;
+                const categoryList = document.createElement('ul');
+                categoryList.style.listStyleType = 'none'; // Remove bullets
+                categoryList.style.padding = '0'; // Remove default padding
+                categoryList.style.margin = '0'; // Remove default margin
+                categoryPlaces.forEach(place => {
+                    const listItem = document.createElement('li');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = place.name;
+                    checkbox.name = 'selectedPlaces';
+                    listItem.appendChild(checkbox);
+                    listItem.appendChild(document.createTextNode(place.name));
+                    listItem.style.margin = '0'; // Remove margin between list items
+                    categoryList.appendChild(listItem);
+                });
+                categoryDiv.appendChild(categoryList);
+                categoriesContainer.appendChild(categoryDiv);
+            }
+
+            // Add button to save selected locations
+            const saveButton = document.createElement('button');
+            saveButton.textContent = 'Save Selected Locations';
+            saveButton.addEventListener('click', function() {
+                saveSelectedLocations();
+            });
+            categoriesContainer.appendChild(saveButton);
+        }
+
+        // Function to save selected locations to the database
+        function saveSelectedLocations() {
+            // Check if any checkboxes are checked
+            const checkedCheckboxes = document.querySelectorAll('input[name="selectedPlaces"]:checked');
+            if (checkedCheckboxes.length === 0) {
+                alert('Please select at least one location.'); // Display alert if no checkboxes are checked
+                return; // Exit function
+            }
+            const selectedLocations = [];
+
+            // Traverse through checkboxes to collect selected locations
+            const checkboxes = document.querySelectorAll('input[name="selectedPlaces"]:checked');
+            checkboxes.forEach(checkbox => {
+                const placeName = checkbox.value;
+                const category = categorizePlace(placeName); // Get category based on place name
+                selectedLocations.push({ category: category, name: placeName });
+            });
+
+            // Send selected locations data to PHP script for database insertion
+            $.ajax({
+                type: 'POST',
+                url: 'stay1.php', // PHP script to handle the request
+                data: { locations: selectedLocations }, // Send selected locations data
+                success: function(response) {
+                    alert(response); // Display response from server in alert message
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText); // Log error message
+                    alert('Failed to save selected locations. Please try again.');
+                }
+            });
+        }
+
+
+        // Function to export data to Excel
+        function exportToExcel(fileName) {
+            const wb = XLSX.utils.book_new();
+            const wsData = [];
+            const headers = ['Category', 'Place Name'];
+
+            wsData.push(headers);
+
+            // Calculate the next available row dynamically
+            let nextRow = 1;
+            nearbyPlaces.forEach(place => {
+                if (place.name.trim() !== '') {
+                    wsData.push([place.schema, place.name]);
+                    nextRow++;
+                }
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Nearby Places');
+
+            // Write the workbook to the file
+            XLSX.writeFile(wb, fileName);
+        }
+
+        document.getElementById('exportToExcelBtn').addEventListener('click', function() {
+            const locationInput = document.getElementById('location').value.trim();
+            if (locationInput !== '') {
+                const fileName = `${locationInput}_nearby_places.xlsx`;
+                exportToExcel(fileName);
+            } else {
+                alert('Please enter a location before exporting to Excel.');
+            }
+        });
+
+        document.getElementById('selectDateBtn').addEventListener('click', function() {
+            // Redirect to the new HTML page
+            window.location.href = 'itinerary.html';
+        });
+    </script>
+
+<style>
+    .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    .left-panel {
+        width: 45%;
+    }
+    .right-panel {
+        width: 50%; /* Adjust width as needed */
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        overflow-y: auto;
+    }
+    #map {
+        height: 100vh;
+        width: 100%;
+    }
+</style>
+</body>
+</html>

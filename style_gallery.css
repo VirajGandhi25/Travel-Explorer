@@ -1,0 +1,42 @@
+.navbar {
+    overflow: hidden;
+    background-color:black;
+    color: white;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.navbar a {
+    float: left;
+    display: block;
+    color:dimgrey;
+    text-align: center;
+    padding: 14px 25px;
+    text-decoration: none;
+
+}
+
+.navbar a.active {
+    color:white;
+}   
+
+.navbar a.navbar_title{
+    font-size: 20px;
+    color: white;
+}
+
+div.card{
+        width: 400px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 10px;
+}
+
+div.card-container{
+    margin-top: 100px;
+    margin-left: 500px;
+}
